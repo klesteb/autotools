@@ -1,0 +1,467 @@
+#!/bin/perl
+#
+# File: autotools-starter
+# Date: 2024-03-01
+# By  : Kevin L. Esteb <kevin@kesteb.us>
+#
+# A simple program to build a GNU autotools based project. 
+#
+# Based on Army Research Laboratory - ARL-CR-0681 Octorber 2011.
+#
+# "Simple Guide to use GNU AutoTools". 
+# By Travis Parker and R. Paul Ritchey.
+#
+#
+use 5.10.0;
+use strict;
+use warnings;
+#
+use lib "../lib";
+#
+use Try::Tiny;
+use Pod::Usage;
+use File::Path;
+use Hash::Merge;
+use Getopt::Long;
+use Time::Piece;
+use File::Spec::Functions;
+use Module::Runtime qw( require_module );
+#
+use AutoTools;
+use AutoTools::Globals;
+use AutoTools::Ignores;
+#
+my $debug = 0;
+my $ignore_type = 'git';
+my $license_type = 'none';
+my $project_type = 'program';
+#
+my $LICENSES = {
+    perl      => 'Perl_5',
+    artistic  => 'Artistic_1_0',
+    artistic2 => 'Artistic_2_0',
+    mozilla   => 'Mozilla_1_1',
+    mozilla2  => 'Mozilla_2_0',
+    bsd       => 'BSD',
+    freebsd   => 'FreeBSD',
+    cc0       => 'CC0_1_0',
+    gpl       => 'GPL_2',
+    lgpl      => 'LGPL_2_1',
+    gpl3      => 'GPL_3',
+    lgpl3     => 'LGPL_3_0',
+    agpl3     => 'AGPL_3',
+    apache    => 'Apache_2_0',
+    qpl       => 'QPL_1_0',
+    none      => 'None',
+};
+
+my $IGNORES = {
+    git => \&gitignore,
+    hg  => \&hgignore,
+};
+
+my $PROJECTS = {
+    program => 'Program',
+    static  => 'Static',
+    shared  => 'Shared',
+};
+
+#
+#----------------------------------------------------------------------
+#
+
+sub get_license {
+
+    my $key = $LICENSES->{$license_type};
+    my $class = $key =~ m/::/ ? $key : "Software::License::$key";
+
+    {
+        local $@;
+        undef $class unless eval { require_module $class; 1 } and $class->can('new');
+    }
+
+    unless (defined $class) {
+        require Software::LicenseUtils;
+        ($class) = Software::LicenseUtils->guess_license_from_meta_key($key);
+        return undef unless defined $class;
+    }
+
+    return $class->new( { holder => $author } );
+
+}
+
+sub license_blurb {
+    
+    my $year = localtime->strftime('%Y'); 
+    my $text = $license->license();
+    my $license_blurb = <<"EOT";
+
+This software is copyright (c) $year by $author.
+      
+This program is released under the following license:
+      
+$text
+
+EOT
+      
+    chomp $license_blurb;
+
+    return $license_blurb;
+    
+}
+
+sub create_ignores {
+
+    $IGNORES->{$ignore_type}->();
+
+}
+
+
+sub create_todo {
+
+    my $fh;
+    my $file = catfile($root, 'TODO');
+
+    open($fh, '>', $file) or die "unable to open $file";
+
+    print $fh "\n";
+    print $fh "The following things need to be done:\n";
+    print $fh "\n";
+
+    close $fh;
+
+}
+
+sub create_copying {
+
+    my $fh;
+    my $file = catfile($root, 'COPYING');
+
+    open($fh, '>', $file) or die "unable to open $file";
+
+    print $fh license_blurb();
+
+    close $fh;
+
+}
+
+sub create_readme {
+
+    my $fh;
+    my $file = catfile($root, 'README');
+
+    open($fh, '>', $file) or die "unable to open $file";
+    close $fh;
+
+}
+
+sub create_news {
+
+    my $fh;
+    my $file = catfile($root, 'NEWS');
+
+    open($fh, '>', $file) or die "unable to opern $file";
+    close $fh;
+
+}
+
+sub create_change_log {
+
+    my $fh;
+    my $pattern = "%s %s <%s>\n";
+    my $file = catfile($root, 'ChangeLog');
+    my $date = localtime->strftime('%Y-%m-%d');
+
+    open($fh, '>', $file) or die "unable to opern $file";
+    print $fh "\n";
+    print $fh sprintf($pattern, $date, $author, $email);
+    print $fh "\n";
+    print $fh "    * ChangeLog: $project\n";
+    print $fh "    * initial revision\n";
+    print $fh "\n";
+    close $fh;
+
+}
+
+sub create_authors {
+
+    my $fh;
+    my $pattern = "%s <%s>\n";
+    my $file = catfile($root, 'AUTHORS');
+
+    open($fh, '>', $file) or die "unable to opern $file";
+    print $fh "The following have contributed to this project:\n";
+    print $fh "\n";
+    print $fh sprintf($pattern, $author, $email);
+    close $fh;
+
+}
+
+sub create_directories {
+
+    my @dirs;
+
+    $root = catdir($directory, $project);
+    $include = catdir($project, 'include');
+    $source = catdir($project, 'src');
+
+    push(@dirs, $root);
+    push(@dirs, $include);
+    push(@dirs, $source);
+
+    mkpath(@dirs, { mode => oct($mode) });
+
+}
+
+sub options {
+
+    return {
+        'directory=s' => sub {
+            $directory = $_[1];
+        },
+        'author=s' => sub {
+            $author = $_[1];
+        },
+        'mode=s' => sub {
+            $mode = $_[1];
+        },
+        'email=s' => sub {
+            $email = $_[1];
+        },
+        'license=s' => sub {
+            $license_type = lc($_[1]);
+            unless (exists($LICENSES->{$license_type})) {
+                die "unknown license type: $license_type";
+            }
+            $license = get_license();
+        },
+        'ignore=s' => sub{
+            $ignore_type = lc($_[1]);
+            unless (exists($IGNORES->{$ignore_type})) {
+                die "unknown ignore type: $ignore_type";
+            }
+        },
+        'type=s' => sub{
+            $project_type = lc($_[1]);
+            unless (exists($PROJECTS->{$project_type})) {
+                die "unknown project type: $project_type";
+            }
+        }    
+    };
+
+}
+
+sub default_options {
+
+    my $commandline = $0;
+    my ($script) = ( $commandline =~ m#([^\\/]+)$# );
+
+    return {
+        'help|h|?' => sub { pod2usage(-verbose => 0, -exitstatus => 0); },
+        'manual'   => sub { pod2usage(-verbose => 2, -exitstatus => 0); },
+        'version'  => sub { printf("%s - v%s\n", $script, $VERSION); exit 0; },
+        'debug'    => sub { $debug = 1 },
+    };
+
+}
+
+sub parse_cmdline {
+    my ($defaults, $optional) = @_;
+
+    my $hm = Hash::Merge->new('RIGHT_PRECEDENT');
+    my %options = %{ $hm->merge($defaults, $optional) };
+
+    GetOptions(%options) or pod2usage(-verbose => 0, -exitstatus => 1);
+
+    if (defined($ARGV[0])) {
+
+        $project = $ARGV[0];
+
+    }
+
+}
+
+sub init {
+
+    my $options = options();
+    my $defaults = default_options();
+    my $module = "AutoTools::" . $PROJECTS->{$project_type};
+
+    $license = get_license();
+    parse_cmdline($defaults, $options);
+
+    require_module($module);
+    $module->import();
+
+
+}
+
+sub main {
+
+    my $stat = 0;
+
+    try {
+
+        init();
+
+        create_directories();
+        create_authors();
+        create_change_log();
+        create_news();
+        create_readme();
+        create_copying();
+        create_todo();
+        create_ignores();
+
+        create_autogen();
+        create_root_makefile_am();
+        create_root_config_ac();
+        create_src_makefile_am();
+        create_source_code();
+        create_header_code();
+
+    } catch {
+
+        $stat = 1;
+        print $_;
+
+    };
+
+    return $stat;
+
+}
+
+main();
+
+__END__
+
+=head1 NAME
+
+autotools-starter - create a basic GNU AutoTools based project
+
+=head1 SYNOPSIS
+
+autotools-starter [project]
+
+ arguments:
+    project name
+
+ options:
+    --help         outputs this simple help text
+    --manual       outputs the manual
+    --version      outputs the version
+    --debug        toogles debugging output
+    --directory    the directory to create the project in
+    --author       the author of the project
+    --mode         change the directories mode
+    --email        the email address to use
+    --ignore       the ignore file to create
+    --license      the projects license
+
+=head1 DESCRIPTION
+
+This program is used to create the basic boilerplate files and directories 
+needed for a GNU AutoTools based project. The work flow could be as follows:
+
+    > autotools-starter project --author "Kevin L. Esteb" --email "kevin\@kesteb.us"
+    > cd project
+    > ./autogen.sh
+    > ./configure
+    > make
+
+After this is ran, you should have a working program in the src directory.
+
+    > cd src
+    > ./project
+    Hello World
+    >
+
+This is designed to work with C source files and is modeled after  
+Perl's module-starter.
+
+=head1 OPTIONS AND ARGUMENTS
+
+=head2 Arguments
+
+The first argument is the project name. The default is "testing".
+
+=head2 Options
+
+=over 4
+
+=item B<--help>
+
+Displays a simple help message.
+
+=item B<--debug>
+
+Turns on debbuging.
+
+=item B<--manual>
+
+The complete documentation.
+
+=item B<--version>
+
+Prints out the apps version
+
+=item B<--directory>
+
+The directory to create the project in. The default is the current directory.
+
+=item B<--author>
+
+The author of the project. The default is the environment variable USER.
+
+=item B<--mode>
+
+The mode to use when creating the directories. The default is 0755.
+
+=item B<--email>
+
+The email address to use.
+
+=item B<--ignore>
+
+The type of ignore file to create. This defaults to git. Other avaiable ignore
+files are as follows:
+
+    git, hg
+
+=item B<--license>
+
+The license to use. This defaults to "none". Avaiable license are as follows:
+
+    perl, atrisitic, artistic2, mozilla, mozilla2, bsd,
+    freebsd, cco, gpl, lgpl, gpl3, lgpl3, agpl3, apache.
+    qpl, none
+
+=back
+
+=head1 EXIT CODES
+
+  0 - success
+  1 - failure
+  
+=head1 SEE ALSO
+  
+=over 4
+  
+=item L<module-starter|module-starter>
+
+=back
+
+=head1 AUTHOR
+  
+  Kevin L. Esteb, E<lt>kevin@kesteb.usE<gt>
+  
+=head1 COPYRIGHT AND LICENSE
+  
+  Copyright (c) 2024 Kevin L. Esteb
+  
+  This is free software; you can redistribute it and/or modify it under
+  the terms of the Artistic License 2.0. For details, see the full text
+  of the license at http://www.perlfoundation.org/artistic_license_2_0.
+  
+=cut
+  
