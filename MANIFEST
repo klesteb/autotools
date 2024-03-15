@@ -1,6 +1,12 @@
 Build.PL
 Changes
-lib/autotools.pm
+bin/autotools-starter
+lib/AutoTools.pm
+lib/AutoTools/Globals.pm
+lib/AutoTools/Ignores.pm
+lib/AutoTools/Program.pm
+lib/AutoTools/Static.pm
+lib/AutoTools/Shared.pm
 LICENSE
 MANIFEST			This list of files
 README

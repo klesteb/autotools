@@ -162,15 +162,47 @@ __END__
   
 =head1 NAME
 
-AutoTools::Program - A class to create cofiguration file for GNU AutoTools
+AutoTools::Ignores - A package to create ignore files
   
 =head1 SYNOPSIS
 
+ use AutoTools::Ignores;
+
 =head1 DESCRIPTION
+
+This package contains the methods to create ignore files.
 
 =head1 METHODS
 
+=over 4
+
+=item hgignore
+
+This method will create a .hgignore in the project directory for usage 
+with Merical.
+
+=item gtignore
+
+This method will create a .gtignore in the project directory for usage
+ with git.
+
+=back
+
 =head1 SEE ALSO
+
+=over 4
+
+=item L<Autotools|AutoTools>
+
+=item L<AutoTools::Globals|AutoTools::Globals>
+
+=item L<AutoTools::Program|AutoTools::Program>
+
+=item L<AutoTools::Shared|AutoTools::Shared>
+
+=item L<AutoTools::Static|AutoTools::Static>
+
+=back
 
 =head1 AUTHOR
 

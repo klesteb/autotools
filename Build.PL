@@ -8,7 +8,7 @@ my $builder = Module::Build->new(
     module_name         => 'autotools',
     license             => 'artistic_2',
     dist_author         => q{Kevin L. Esteb <kevin@kesteb.us>},
-    dist_version_from   => 'lib/autotools.pm',
+    dist_version_from   => 'lib/AutoTools.pm',
     release_status      => 'stable',
     configure_requires => {
         'Module::Build' => '0.4004',
@@ -17,8 +17,15 @@ my $builder = Module::Build->new(
         'Test::More' => '0',
     },
     requires => {
-        #'ABC'              => '1.6',
-        #'Foo::Bar::Module' => '5.0401',
+        'perl'            => 5.10.0,
+        'Try::Tiny'       => 0.0,
+        'Pod::Usage'      => 0.0,
+        'File::Path'      => 0.0,
+        'Hash::Merge'     => 0.0,
+        'Getopt::Long'    => 0.0,
+        'Time::Piece'     => 0.0,
+        'File::Spec'      => 0.0,
+        'Module::Runtime' => 0.0,
     },
     add_to_cleanup     => [ 'autotools-*' ],
 );

@@ -1,4 +1,4 @@
-package AutoTools::static;
+package AutoTools::Static;
 
 use 5.10.0;
 use strict;
@@ -227,17 +227,65 @@ sub create_source_code {
 
 __END__
   
+__END__
+  
 =head1 NAME
 
-AutoTools::Program - A class to create cofiguration file for GNU AutoTools
+AutoTools::Static - A package to create configuration for static libraries
   
 =head1 SYNOPSIS
 
+ use AutoTools::Static;
+
 =head1 DESCRIPTION
+
+This package creates the configuration for static libraries.
 
 =head1 METHODS
 
+=over 4
+
+=item create_autogen()
+
+Create the appropiate autogen.sh script in the projects root directory.
+
+=item create_src_makefile_am()
+
+Create the appropiate Makefile.am in the projects src directory.
+
+=item create_root_config_ac()
+
+Create the appropiate configure.ac in the projects root directory.
+
+=item create_root_makefile_am()
+
+Create the appropiate Makefile.am in the projects root directory.
+
+=item create_header_code()
+
+Create the sample header file for the static library.
+
+=item create_source_code()
+
+Create the sample source code for the static library.
+
+=back
+
 =head1 SEE ALSO
+
+=over 4
+
+=item L<Autotools|AutoTools>
+
+=item L<AutoTools::Ignores|AutoTools::Ignores>
+
+=item L<AutoTools::Globals|AutoTools::Globals>
+
+=item L<AutoTools::Shared|AutoTools::Shared>
+
+=item L<AutoTools::Program|AutoTools::Program>
+
+=back
 
 =head1 AUTHOR
 

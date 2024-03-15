@@ -71,6 +71,8 @@ No methods are defined. This package exports the following variables:
 
 =item L<Autotools|AutoTools>
 
+=item L<AutoTools::Ignores|AutoTools::Ignores>
+
 =item L<AutoTools::Program|AutoTools::Program>
 
 =item L<AutoTools::Shared|AutoTools::Shared>
