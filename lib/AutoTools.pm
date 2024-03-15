@@ -72,7 +72,7 @@ something "cool".
 
 =item L<AutoTools::Global|AutoTools::Ignores>
 
-=item L<AutoTools::Ignores|AutoTools::Ignores>
+=item L<AutoTools::Globals|AutoTools::Globals>
 
 =item L<AutoTools::Program|AutoTools::Program>
 
