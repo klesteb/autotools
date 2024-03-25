@@ -14,6 +14,7 @@ our $root;
 our $source;
 our $include;
 our $license;
+our $libs;
 our $mode = '0755';
 our $directory = '.';
 our $project = 'testing';
@@ -21,7 +22,7 @@ our $author = $ENV{'USER'};
 our $email = "$author\@example.com";
 
 our @EXPORT = qw( $root $source $include $license $mode 
-                  $directory $author $email $project );
+                  $directory $author $email $project $libs );
 
 1;
 

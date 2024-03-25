@@ -22,10 +22,12 @@ sub create_directories {
     $root = catdir($directory, $project);
     $include = catdir($project, 'include');
     $source = catdir($project, 'src');
+    $libs = catdir($source, 'libfoo');
 
     push(@dirs, $root);
     push(@dirs, $include);
     push(@dirs, $source);
+    push(@dirs, $libs);
 
     mkpath(@dirs, { mode => oct($mode) });
 

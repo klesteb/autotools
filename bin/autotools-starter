@@ -185,6 +185,7 @@ sub create_authors {
     my $file = catfile($root, 'AUTHORS');
 
     open($fh, '>', $file) or die "unable to opern $file";
+    print $fh "\n";
     print $fh "The following have contributed to this project:\n";
     print $fh "\n";
     print $fh sprintf($pattern, $author, $email);
@@ -209,22 +210,12 @@ sub options {
         },
         'license=s' => sub {
             $license_type = lc($_[1]);
-            unless (exists($LICENSES->{$license_type})) {
-                die "unknown license type: $license_type";
-            }
-            $license = get_license();
         },
         'ignore=s' => sub{
             $ignore_type = lc($_[1]);
-            unless (exists($IGNORES->{$ignore_type})) {
-                die "unknown ignore type: $ignore_type";
-            }
         },
         'type=s' => sub{
             $project_type = lc($_[1]);
-            unless (exists($PROJECTS->{$project_type})) {
-                die "unknown project type: $project_type";
-            }
         }    
     };
 
@@ -268,6 +259,18 @@ sub init {
 
     parse_cmdline($defaults, $options);
 
+    unless (exists($LICENSES->{$license_type})) {
+        die "unknown license type: $license_type";
+    }
+
+    unless (exists($IGNORES->{$ignore_type})) {
+        die "unknown ignore type: $ignore_type";
+    }
+
+    unless (exists($PROJECTS->{$project_type})) {
+        die "unknown project type: $project_type";
+    }
+
     $license = get_license();
     $module = "AutoTools::" . $PROJECTS->{$project_type};
 
@@ -306,7 +309,7 @@ sub main {
         my ($text, $junk) = split(/at/, $err);
 
         $stat = 1;
-        print $text;
+        printf("%s\n", $text);
 
     };
 
