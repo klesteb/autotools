@@ -6,11 +6,29 @@ use warnings;
 
 use AutoTools::Globals;
 use Exporter qw(import);
+use File::Path;
 use File::Spec::Functions;
 
 our @EXPORT = qw( create_autogen create_src_makefile_am 
                   create_root_config_ac create_root_makefile_am 
-                  create_header_code create_source_code);
+                  create_header_code create_source_code
+                  create_directories);
+
+sub create_directories {
+
+    my @dirs;
+
+    $root = catdir($directory, $project);
+    $include = catdir($project, 'include');
+    $source = catdir($project, 'src');
+
+    push(@dirs, $root);
+    push(@dirs, $include);
+    push(@dirs, $source);
+
+    mkpath(@dirs, { mode => oct($mode) });
+
+}
 
 sub create_autogen {
 

@@ -6,11 +6,6 @@
 #
 # A simple program to build a GNU autotools based project. 
 #
-# Based on Army Research Laboratory - ARL-CR-0681 Octorber 2011.
-#
-# "Simple Guide to use GNU AutoTools". 
-# By Travis Parker and R. Paul Ritchey.
-#
 #
 use 5.10.0;
 use strict;
@@ -197,22 +192,6 @@ sub create_authors {
 
 }
 
-sub create_directories {
-
-    my @dirs;
-
-    $root = catdir($directory, $project);
-    $include = catdir($project, 'include');
-    $source = catdir($project, 'src');
-
-    push(@dirs, $root);
-    push(@dirs, $include);
-    push(@dirs, $source);
-
-    mkpath(@dirs, { mode => oct($mode) });
-
-}
-
 sub options {
 
     return {
@@ -283,16 +262,17 @@ sub parse_cmdline {
 
 sub init {
 
+    my $module;
     my $options = options();
     my $defaults = default_options();
-    my $module = "AutoTools::" . $PROJECTS->{$project_type};
+
+    parse_cmdline($defaults, $options);
 
     $license = get_license();
-    parse_cmdline($defaults, $options);
+    $module = "AutoTools::" . $PROJECTS->{$project_type};
 
     require_module($module);
     $module->import();
-
 
 }
 
@@ -322,8 +302,11 @@ sub main {
 
     } catch {
 
+        my $err = $_;
+        my ($text, $junk) = split(/at/, $err);
+
         $stat = 1;
-        print $_;
+        print $text;
 
     };
 
